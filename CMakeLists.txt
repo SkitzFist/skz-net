@@ -10,9 +10,10 @@ include(FetchContent)
 FetchContent_Declare(asio GIT_REPOSITORY https://github.com/chriskohlhoff/asio.git GIT_TAG asio-1-29-0)
 FetchContent_MakeAvailable(asio)
 
-add_library(${PROJECT_NAME} interface)
-
-target_include_directories(${PROJECT_NAME} INTERFACE
-  ${CMAKE_CURRENT_SOURCE_DIR}/include
-  ${asio_SOURCE_DIR}/asio/include
+add_library(${PROJECT_NAME} INTERFACE)
+target_include_directories(
+  ${PROJECT_NAME} INTERFACE include/
+  ${PROJECT_NAME} INTERFACE ${asio_SOURCE_DIR}/asio/include
 )
+
+target_compile_definitions(${PROJECT_NAME} INTERFACE ASIO_STANDALONE)
