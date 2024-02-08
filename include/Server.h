@@ -58,14 +58,12 @@ namespace SkzNet{
 
       //async
       void waitForClientConnection(){
-        std::cout << "[SERVER] Waiting for connection..." << '\n';
         m_asioAcceptor.async_accept(
           [this](std::error_code ec, asio::ip::tcp::socket socket){
              if(ec)             {
                std::cout << "[SERVER] New connection error: " << ec.message() << '\n';
              } else {
                std::cout << "[SERVER] New connection: " << socket.remote_endpoint() << '\n';
-              //TODO server crashes after this point, investigate
 
               std::shared_ptr<Connection<T>> newConnection = std::make_shared<Connection<T>>(
                 Connection<T>::Owner::SERVER,
@@ -122,13 +120,13 @@ namespace SkzNet{
         }
       }
 
-      void update(std::size_t maxMessagesToHandle = -1){
-        std::size_t messageCount = 0;
-
-        while (messageCount < maxMessagesToHandle && !m_messagesIn.isEmpty())
+      void update(){
+        if(m_messagesIn.count() > 0){
+          std::cout << "[SERVER : UPDATE] Messages in queue: " << m_messagesIn.count() << '\n';
+        }
+        while (!m_messagesIn.isEmpty())
         {
           auto msg = m_messagesIn.popFront();
-
           onMessage(msg.remote, msg.msg);
         }
         
@@ -136,13 +134,15 @@ namespace SkzNet{
 
     protected:
       virtual bool onClientConnect(std::shared_ptr<Connection<T>> client){
+        (void)client;
         return false;
       }
       virtual void onClientDisconnect(std::shared_ptr<Connection<T>> client){
-
+        (void)client;
       }
       virtual void onMessage(std::shared_ptr<Connection<T>> client, Message<T>& msg){
-
+        (void)client;
+        (void)msg;
       }
 
     protected:
@@ -154,7 +154,7 @@ namespace SkzNet{
       std::thread m_threadContext;
       asio::ip::tcp::acceptor m_asioAcceptor;
 
-      uint32_t m_idCounter = 10000;
+      uint32_t m_idCounter = 0;
   };
 
 };

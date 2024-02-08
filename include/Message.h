@@ -21,7 +21,7 @@ namespace SkzNet
     std::vector<uint8_t> body;
 
     std::size_t size() const{
-      return sizeof(MessageHeader<T>) + body.size();
+      return body.size();
     }
 
     //print

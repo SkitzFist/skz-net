@@ -36,21 +36,33 @@ namespace SkzNet{
     }
 
   public:
-    bool connectToServer(){
-
+    void connectToServer( const asio::ip::tcp::resolver::results_type& endpoints ){
+      if( m_OwnerType == Owner::CLIENT ){
+        asio::async_connect(
+          m_socket,
+          endpoints,
+          [this](std::error_code ec, asio::ip::tcp::endpoint endpoint){
+            if ( !ec ) {
+              readHeader();
+            }
+          }
+        );
+      }
     }
 
-    bool connectToClient(uint32_t id = 0){
+    void connectToClient(uint32_t id = 0){
       if(m_OwnerType == Owner::SERVER){
-        m_id = id;
-        readHeader();
-        return true;
+        if(m_socket.is_open()){
+          m_id = id;
+          readHeader();
+        }else{
+          std::cout << "[SERVER] connectToClient: Socket was not open" << '\n';
+        }
       }
 
-      return false;
     }
     
-    bool disconnect(){
+    void disconnect(){
       if(isConnected()){
         asio::post(
           m_asioContext,
@@ -66,7 +78,7 @@ namespace SkzNet{
       return m_socket.is_open();
     }
     
-    bool send(const Message<T> &msg){
+    void send(const Message<T> &msg){
       asio::post(
         m_asioContext,
         [this, msg](){
@@ -94,7 +106,7 @@ namespace SkzNet{
     Message<T> m_msgTemporaryIn;
 
     Owner m_OwnerType = Owner::SERVER;
-    uint32_t m_id = 0;
+    uint32_t m_id = 1;
 
   private:
     void readHeader(){
@@ -103,7 +115,7 @@ namespace SkzNet{
         asio::buffer(&m_msgTemporaryIn.header, sizeof(MessageHeader<T>)),
         [this](std::error_code ec, std::size_t length){
           if(ec){
-            std::cout << "[" << m_id << "] Read header failed" << '\n';
+            std::cout << "[" << m_id << "] Read header failed: " << ec.message() << '\n';
             m_socket.close();
           }else{
             if(m_msgTemporaryIn.header.size > 0){
@@ -147,11 +159,12 @@ namespace SkzNet{
         m_socket,
         asio::buffer( &m_messagesOut.front().header , sizeof( MessageHeader<T> ) ),
         [this](std::error_code ec, std::size_t length){
+          (void)length;
           if(ec){
             std::cout << "[" << m_id << "] Write header failed" << '\n';
             m_socket.close();
           } else {
-            if( m_messagesOut.front().body.size > 0 ){
+            if( m_messagesOut.front().body.size() > 0 ){
               writeBody();
             } else {
               m_messagesOut.popFront();

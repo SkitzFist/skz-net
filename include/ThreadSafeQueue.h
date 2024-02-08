@@ -18,7 +18,7 @@ namespace SkzNet{
         return deqQueue.front();
       }
 
-      const T& popFront(){
+      T popFront(){
         std::scoped_lock lock(muxQueue);
         auto t = std::move(deqQueue.front());
         deqQueue.pop_front();
@@ -30,7 +30,7 @@ namespace SkzNet{
         return deqQueue.back();
       }
 
-      const T& popBack(){
+      T popBack(){
         std::scoped_lock lock(muxQueue);
         auto t = std::move(deqQueue.back());
         deqQueue.pop_back();
