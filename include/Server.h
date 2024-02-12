@@ -105,7 +105,7 @@ namespace SkzNet{
         for(auto& client : m_deqConnections){
           if(client && client->isConnected()){
             if(client != ignore){
-              client.send(msg);
+              client->send(msg);
             }
           }else{
             onClientDisconnect(client);
