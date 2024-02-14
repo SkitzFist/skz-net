@@ -1,72 +1,73 @@
 #ifndef SKZ_NET_THREAD_SAFE_QUEUE_H_
 #define SKZ_NET_THREAD_SAFE_QUEUE_H_
 
-#include <mutex>
 #include <deque>
+#include <mutex>
 
-namespace SkzNet{
 
-  template<typename T>
-  class ThreadSafeQueue{
-    public:
-      ThreadSafeQueue() = default;
-      ThreadSafeQueue(const ThreadSafeQueue<T>&) = delete;
-      virtual ~ThreadSafeQueue() { clear(); }
+namespace SkzNet {
 
-      const T& front(){
+template <typename T>
+class ThreadSafeQueue {
+  public:
+    ThreadSafeQueue() = default;
+    ThreadSafeQueue(const ThreadSafeQueue<T> &) = delete;
+    virtual ~ThreadSafeQueue() { clear(); }
+
+    const T &front() {
         std::scoped_lock lock(muxQueue);
         return deqQueue.front();
-      }
+    }
 
-      T popFront(){
+    T popFront() {
         std::scoped_lock lock(muxQueue);
         auto t = std::move(deqQueue.front());
         deqQueue.pop_front();
         return t;
-      }
+    }
 
-      const T& back(){
+    const T &back() {
         std::scoped_lock lock(muxQueue);
         return deqQueue.back();
-      }
+    }
 
-      T popBack(){
+    T popBack() {
         std::scoped_lock lock(muxQueue);
         auto t = std::move(deqQueue.back());
         deqQueue.pop_back();
         return t;
-      }
+    }
 
-      void push_back(const T& item){
+    void push_back(const T &item) {
         std::scoped_lock lock(muxQueue);
         deqQueue.emplace_back(std::move(item));
-      }
+    }
 
-      void push_front(const T& item){
+    void push_front(const T &item) {
         std::scoped_lock lock(muxQueue);
         deqQueue.emplace_front(std::move(item));
-      }
+    }
 
-      bool isEmpty(){
+    bool isEmpty() {
         std::scoped_lock lock(muxQueue);
         return deqQueue.empty();
-      }
+    }
 
-      size_t count(){
+    size_t count() {
         std::scoped_lock lock(muxQueue);
         return deqQueue.size();
-      }
+    }
 
-      void clear(){
+    void clear() {
         std::scoped_lock lock(muxQueue);
         deqQueue.clear();
-      }
+    }
 
-    protected:
-      std::mutex muxQueue;
-      std::deque<T> deqQueue;
-  };
-
+  protected:
+    std::mutex muxQueue;
+    std::deque<T> deqQueue;
 };
+
+}; // namespace SkzNet
 
 #endif
